@@ -1,8 +1,10 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta, datetime
 from io import BytesIO
+
+from docx import Document
 
 st.set_page_config(
     page_title="Research Project Planner",
@@ -85,6 +87,28 @@ def excel_download(dataframes):
         for sheet, df in dataframes.items():
             df.to_excel(writer, sheet_name=sheet[:31], index=False)
     return output.getvalue()
+
+
+def docx_download(dataframes):
+    document = Document()
+    document.add_heading("Research Project Report", level=1)
+
+    for sheet, df in dataframes.items():
+        document.add_heading(sheet, level=2)
+        if df.empty:
+            document.add_paragraph("No data available.")
+            continue
+        for _, row in df.iterrows():
+            items = []
+            for key, value in row.items():
+                if pd.isna(value):
+                    value = ""
+                items.append(f"{key}: {value}")
+            document.add_paragraph(" | ".join(items))
+
+    buffer = BytesIO()
+    document.save(buffer)
+    return buffer.getvalue()
 
 
 def normalize_date_value(value):
@@ -803,6 +827,23 @@ elif page == "Export":
         file_name="research_project_plan.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         type="primary"
+    )
+
+    docx_file = docx_download({
+        "Project": project_df,
+        "Timeline": timeline_df,
+        "Tasks": tasks_df,
+        "Literature": literature_df,
+        "Data Collection": data_df,
+        "Chapters": chapters_df,
+        "Notes": notes_df,
+    })
+    st.download_button(
+        "Download Research Project as DOCX",
+        data=docx_file,
+        file_name="research_project_report.docx",
+        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        type="secondary"
     )
 
     st.subheader("Export Preview")
