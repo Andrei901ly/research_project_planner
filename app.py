@@ -856,7 +856,7 @@ elif page == "Export":
     st.divider()
     st.warning(
         "This application does not use a database. Data exists only in the current "
-        "Streamlit session, so download the Excel file if you want to keep a copy."
+        "Streamlit session, so download the file if you want to keep a copy."
     )
 
 # -----------------------------
